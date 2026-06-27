@@ -27,17 +27,17 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=d08b24aa" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -535,7 +535,7 @@ example, to configure <code class="docutils literal notranslate"><span class="pr
 </tr>
 <tr class="row-even"><td><p>datafusion.execution.collect_statistics</p></td>
 <td><p>true</p></td>
-<td><p>Should DataFusion collect statistics when first creating a table. Has no effect after the table is created. Applies to the default <code class="docutils literal notranslate"><span class="pre">ListingTableProvider</span></code> in DataFusion. Defaults to true.</p></td>
+<td><p>Should DataFusion collect statistics when first creating a table. Has no effect after the table is created. Defaults to true.</p></td>
 </tr>
 <tr class="row-odd"><td><p>datafusion.execution.target_partitions</p></td>
 <td><p>0</p></td>
@@ -631,75 +631,83 @@ example, to configure <code class="docutils literal notranslate"><span class="pr
 </tr>
 <tr class="row-even"><td><p>datafusion.execution.parquet.max_row_group_size</p></td>
 <td><p>1048576</p></td>
-<td><p>(writing) Target maximum number of rows in each row group (defaults to 1M rows). Writing larger row groups requires more memory to write, but can get better compression and be faster to read.</p></td>
+<td><p>(writing) Target maximum number of rows in each row group (defaults to 1M rows). Writing larger row groups requires more memory to write, but can get better compression and be faster to read. When <code class="docutils literal notranslate"><span class="pre">max_row_group_bytes</span></code> is also set, the writer flushes a row group when either limit is reached, whichever comes first.</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.created_by</p></td>
-<td><p>datafusion version 53.1.0</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.max_row_group_bytes</p></td>
+<td><p>NULL</p></td>
+<td><p>(writing) Target maximum size of each row group in bytes. When set, the writer flushes whenever either this limit or <code class="docutils literal notranslate"><span class="pre">max_row_group_size</span></code> is reached, whichever comes first. Useful for bounding writer memory on wide schemas where a row-count limit can map to very different byte sizes. Matches the behavior of <code class="docutils literal notranslate"><span class="pre">parquet.block.size</span></code> in parquet-mr. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (the default), only the row-count limit applies. Currently only honored when <code class="docutils literal notranslate"><span class="pre">allow_single_file_parallelism</span></code> is <code class="docutils literal notranslate"><span class="pre">false</span></code>; by default the parallel file writer ignores this limit.</p></td>
+</tr>
+<tr class="row-even"><td><p>datafusion.execution.parquet.created_by</p></td>
+<td><p>datafusion version 54.0.0</p></td>
 <td><p>(writing) Sets “created by” property</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.parquet.column_index_truncate_length</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.column_index_truncate_length</p></td>
 <td><p>64</p></td>
 <td><p>(writing) Sets column index truncate length</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.statistics_truncate_length</p></td>
+<tr class="row-even"><td><p>datafusion.execution.parquet.statistics_truncate_length</p></td>
 <td><p>64</p></td>
 <td><p>(writing) Sets statistics truncate length. If NULL, uses default parquet writer setting</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.parquet.data_page_row_count_limit</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.data_page_row_count_limit</p></td>
 <td><p>20000</p></td>
 <td><p>(writing) Sets best effort maximum number of rows in data page</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.encoding</p></td>
+<tr class="row-even"><td><p>datafusion.execution.parquet.encoding</p></td>
 <td><p>NULL</p></td>
 <td><p>(writing) Sets default encoding for any column. Valid values are: plain, plain_dictionary, rle, bit_packed, delta_binary_packed, delta_length_byte_array, delta_byte_array, rle_dictionary, and byte_stream_split. These values are not case sensitive. If NULL, uses default parquet writer setting</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.parquet.bloom_filter_on_write</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.bloom_filter_on_write</p></td>
 <td><p>false</p></td>
 <td><p>(writing) Write bloom filters for all columns when creating parquet files</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.bloom_filter_fpp</p></td>
+<tr class="row-even"><td><p>datafusion.execution.parquet.bloom_filter_fpp</p></td>
 <td><p>NULL</p></td>
 <td><p>(writing) Sets bloom filter false positive probability. If NULL, uses default parquet writer setting</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.parquet.bloom_filter_ndv</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.bloom_filter_ndv</p></td>
 <td><p>NULL</p></td>
 <td><p>(writing) Sets bloom filter number of distinct values. If NULL, uses default parquet writer setting</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.allow_single_file_parallelism</p></td>
+<tr class="row-even"><td><p>datafusion.execution.parquet.allow_single_file_parallelism</p></td>
 <td><p>true</p></td>
 <td><p>(writing) Controls whether DataFusion will attempt to speed up writing parquet files by serializing them in parallel. Each column in each row group in each output file are serialized in parallel leveraging a maximum possible core count of n_files<em>n_row_groups</em>n_columns.</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.parquet.maximum_parallel_row_group_writers</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.maximum_parallel_row_group_writers</p></td>
 <td><p>1</p></td>
 <td><p>(writing) By default parallel parquet writer is tuned for minimum memory usage in a streaming execution plan. You may see a performance benefit when writing large parquet files by increasing maximum_parallel_row_group_writers and maximum_buffered_record_batches_per_stream if your system has idle cores and can tolerate additional memory usage. Boosting these values is likely worthwhile when writing out already in-memory data, such as from a cached data frame.</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.maximum_buffered_record_batches_per_stream</p></td>
+<tr class="row-even"><td><p>datafusion.execution.parquet.maximum_buffered_record_batches_per_stream</p></td>
 <td><p>2</p></td>
 <td><p>(writing) By default parallel parquet writer is tuned for minimum memory usage in a streaming execution plan. You may see a performance benefit when writing large parquet files by increasing maximum_parallel_row_group_writers and maximum_buffered_record_batches_per_stream if your system has idle cores and can tolerate additional memory usage. Boosting these values is likely worthwhile when writing out already in-memory data, such as from a cached data frame.</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.parquet.content_defined_chunking.enabled</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.content_defined_chunking.enabled</p></td>
 <td><p>false</p></td>
 <td><p>(writing) EXPERIMENTAL: Enable content-defined chunking (CDC) when writing parquet files. When enabled, parallel writing is automatically disabled since the chunker state must persist across row groups.</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.content_defined_chunking.min_chunk_size</p></td>
+<tr class="row-even"><td><p>datafusion.execution.parquet.content_defined_chunking.min_chunk_size</p></td>
 <td><p>262144</p></td>
 <td><p>Minimum chunk size in bytes. The rolling hash will not trigger a split until this many bytes have been accumulated. Default is 256 KiB.</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.parquet.content_defined_chunking.max_chunk_size</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.parquet.content_defined_chunking.max_chunk_size</p></td>
 <td><p>1048576</p></td>
 <td><p>Maximum chunk size in bytes. A split is forced when the accumulated size exceeds this value. Default is 1 MiB.</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.parquet.content_defined_chunking.norm_level</p></td>
+<tr class="row-even"><td><p>datafusion.execution.parquet.content_defined_chunking.norm_level</p></td>
 <td><p>0</p></td>
 <td><p>Normalization level. Increasing this improves deduplication ratio but increases fragmentation. Recommended range is [-3, 3], default is 0.</p></td>
 </tr>
-<tr class="row-even"><td><p>datafusion.execution.planning_concurrency</p></td>
+<tr class="row-odd"><td><p>datafusion.execution.planning_concurrency</p></td>
 <td><p>0</p></td>
 <td><p>Fan-out during initial physical planning. This is mostly use to plan <code class="docutils literal notranslate"><span class="pre">UNION</span></code> children in parallel. Defaults to the number of CPU cores on the system</p></td>
 </tr>
-<tr class="row-odd"><td><p>datafusion.execution.skip_physical_aggregate_schema_check</p></td>
+<tr class="row-even"><td><p>datafusion.execution.skip_physical_aggregate_schema_check</p></td>
 <td><p>false</p></td>
 <td><p>When set to true, skips verifying that the schema produced by planning the input of <code class="docutils literal notranslate"><span class="pre">LogicalPlan::Aggregate</span></code> exactly matches the schema of the input plan. When set to false, if the schema does not match exactly (including nullability and metadata), a planning error will be raised. This is used to workaround bugs in the planner that are now caught by the new schema verification step.</p></td>
+</tr>
+<tr class="row-odd"><td><p>datafusion.execution.enable_migration_aggregate</p></td>
+<td><p>true</p></td>
+<td><p>Temporary switch for aggregate stream implementations that are being migrated from <code class="docutils literal notranslate"><span class="pre">GroupedHashAggregateStream</span></code>. When set to true, DataFusion tries the migrated implementations when their preconditions are satisfied. When set to false, grouped aggregation falls back to <code class="docutils literal notranslate"><span class="pre">GroupedHashAggregateStream</span></code>. This option will be removed after the migration is finished. See <a class="github reference external" href="https://github.com/apache/datafusion/issues/22710">apache/datafusion#22710</a> for details.</p></td>
 </tr>
 <tr class="row-even"><td><p>datafusion.execution.spill_compression</p></td>
 <td><p>uncompressed</p></td>
@@ -991,7 +999,7 @@ example, to configure <code class="docutils literal notranslate"><span class="pr
 </tr>
 <tr class="row-even"><td><p>datafusion.sql_parser.dialect</p></td>
 <td><p>generic</p></td>
-<td><p>Configure the SQL dialect used by DataFusion’s parser; supported values include: Generic, MySQL, PostgreSQL, Hive, SQLite, Snowflake, Redshift, MsSQL, ClickHouse, BigQuery, Ansi, DuckDB and Databricks.</p></td>
+<td><p>Configure the SQL dialect used by DataFusion’s parser; supported values include: Generic, MySQL, PostgreSQL, Hive, SQLite, Snowflake, Redshift, MsSQL, ClickHouse, BigQuery, Ansi, DuckDB, Databricks, Spark.</p></td>
 </tr>
 <tr class="row-odd"><td><p>datafusion.sql_parser.support_varchar_with_length</p></td>
 <td><p>true</p></td>
@@ -1339,8 +1347,8 @@ equal in size.</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
 
 <!-- Based on pydata_sphinx_theme/footer.html -->
 <footer class="footer mt-5 mt-md-0">
