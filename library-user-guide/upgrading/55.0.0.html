@@ -451,6 +451,59 @@
 <p><strong>Note:</strong> DataFusion <code class="docutils literal notranslate"><span class="pre">55.0.0</span></code> has not been released yet. The information provided
 in this section pertains to features and changes that have already been merged
 to the main branch and are awaiting release in this version.</p>
+<section id="dataframe-fill-null-now-borrows-its-arguments">
+<h3><code class="docutils literal notranslate"><span class="pre">DataFrame::fill_null</span></code> now borrows its arguments<a class="headerlink" href="#dataframe-fill-null-now-borrows-its-arguments" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">DataFrame::fill_null</span></code> previously took its arguments by value:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// Before</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">fill_null</span><span class="p">(</span>
+<span class="w">    </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span>
+<span class="w">    </span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="nc">ScalarValue</span><span class="p">,</span>
+<span class="w">    </span><span class="n">columns</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">DataFrame</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>It now borrows them, matching the signature of the newly added
+<code class="docutils literal notranslate"><span class="pre">DataFrame::fill_nan</span></code>:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// After</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">fill_null</span><span class="p">(</span>
+<span class="w">    </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span>
+<span class="w">    </span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">ScalarValue</span><span class="p">,</span>
+<span class="w">    </span><span class="n">columns</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="p">[</span><span class="o">&amp;</span><span class="kt">str</span><span class="p">],</span>
+<span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nb">Result</span><span class="o">&lt;</span><span class="n">DataFrame</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This lets callers pass a borrowed <code class="docutils literal notranslate"><span class="pre">ScalarValue</span></code> and slice literals (or
+<code class="docutils literal notranslate"><span class="pre">&amp;str</span></code> column names) without first allocating owned <code class="docutils literal notranslate"><span class="pre">String</span></code>s.</p>
+<p><strong>Migration guide:</strong></p>
+<p>Borrow the value and pass a slice of <code class="docutils literal notranslate"><span class="pre">&amp;str</span></code> instead of an owned <code class="docutils literal notranslate"><span class="pre">Vec&lt;String&gt;</span></code>:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// Before</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">.</span><span class="n">fill_null</span><span class="p">(</span><span class="n">ScalarValue</span><span class="p">::</span><span class="n">from</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[</span><span class="s">&quot;a&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;c&quot;</span><span class="p">.</span><span class="n">to_owned</span><span class="p">()])</span><span class="o">?</span><span class="p">;</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">.</span><span class="n">fill_null</span><span class="p">(</span><span class="n">ScalarValue</span><span class="p">::</span><span class="n">from</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[])</span><span class="o">?</span><span class="p">;</span>
+
+<span class="c1">// After</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">.</span><span class="n">fill_null</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ScalarValue</span><span class="p">::</span><span class="n">from</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="p">[</span><span class="s">&quot;a&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;c&quot;</span><span class="p">])</span><span class="o">?</span><span class="p">;</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">df</span><span class="p">.</span><span class="n">fill_null</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ScalarValue</span><span class="p">::</span><span class="n">from</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="o">&amp;</span><span class="p">[])</span><span class="o">?</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+<section id="user-spillfile-traits-instead-of-refcountedtempfile">
+<h3>User <code class="docutils literal notranslate"><span class="pre">SpillFile</span></code> traits instead of <a class="reference external" href="https://docs.rs/datafusion-execution/latest/datafusion_execution/disk_manager/struct.RefCountedTempFile.html"><code class="docutils literal notranslate"><span class="pre">RefCountedTempFile</span></code></a><a class="headerlink" href="#user-spillfile-traits-instead-of-refcountedtempfile" title="Link to this heading">#</a></h3>
+<p>Spill file APIs now use the <code class="docutils literal notranslate"><span class="pre">datafusion_execution::SpillFile</span></code> trait instead of
+the concrete <a class="reference external" href="https://docs.rs/datafusion-execution/latest/datafusion_execution/disk_manager/struct.RefCountedTempFile.html"><code class="docutils literal notranslate"><span class="pre">RefCountedTempFile</span></code></a> type. <a class="reference external" href="https://docs.rs/datafusion-execution/latest/datafusion_execution/disk_manager/struct.DiskManager.html#method.create_tmp_file"><code class="docutils literal notranslate"><span class="pre">DiskManager::create_tmp_file</span></code></a> now
+returns <code class="docutils literal notranslate"><span class="pre">Arc&lt;dyn</span> <span class="pre">SpillFile&gt;</span></code>.
+This change was introduced in [PR #21882], which adds pluggable spill file
+backends via <code class="docutils literal notranslate"><span class="pre">SpillFile</span></code> and <code class="docutils literal notranslate"><span class="pre">TempFileFactory</span></code>.</p>
+<p>If your code matched on <a class="reference external" href="https://docs.rs/datafusion-execution/latest/datafusion_execution/disk_manager/enum.DiskManagerMode.html"><code class="docutils literal notranslate"><span class="pre">DiskManagerMode</span></code></a>, add a <code class="docutils literal notranslate"><span class="pre">DiskManagerMode::Custom(_)</span></code>
+arm.</p>
+<p>If your code wrote directly to a <a class="reference external" href="https://docs.rs/datafusion-execution/latest/datafusion_execution/disk_manager/struct.RefCountedTempFile.html"><code class="docutils literal notranslate"><span class="pre">RefCountedTempFile</span></code></a> or called
+<a class="reference external" href="https://docs.rs/datafusion-execution/latest/datafusion_execution/disk_manager/struct.RefCountedTempFile.html#method.update_disk_usage"><code class="docutils literal notranslate"><span class="pre">RefCountedTempFile::update_disk_usage</span></code></a>, open a spill writer instead:</p>
+<div class="highlight-diff notranslate"><div class="highlight"><pre><span></span><span class="gd">- temp_file.inner().as_file().write_all(bytes)?;</span>
+<span class="gd">- temp_file.update_disk_usage()?;</span>
+<span class="gi">+ temp_file.open_writer()?.write_all(bytes)?;</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">temp_file.size()</span></code> instead of <a class="reference external" href="https://docs.rs/datafusion-execution/latest/datafusion_execution/disk_manager/struct.RefCountedTempFile.html#method.current_disk_usage"><code class="docutils literal notranslate"><span class="pre">RefCountedTempFile::current_disk_usage</span></code></a>.</p>
+</section>
 <section id="dialect-available-replaced-by-dialect-available">
 <h3><code class="docutils literal notranslate"><span class="pre">Dialect::AVAILABLE</span></code> replaced by <code class="docutils literal notranslate"><span class="pre">Dialect::available()</span></code><a class="headerlink" href="#dialect-available-replaced-by-dialect-available" title="Link to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">datafusion_common::config::Dialect::AVAILABLE</span></code> has been removed. Use
@@ -813,6 +866,24 @@ type aliases:</p>
 <p>Implement the newly introduced types for your custom cache implementation.</p>
 <p>See <a class="reference external" href="https://github.com/apache/datafusion/pull/22613">PR #22613</a> for details.</p>
 </section>
+<section id="cachedfilemetadata-now-validates-file-schema">
+<h3><code class="docutils literal notranslate"><span class="pre">CachedFileMetadata</span></code> now validates file schema<a class="headerlink" href="#cachedfilemetadata-now-validates-file-schema" title="Link to this heading">#</a></h3>
+<p>The file-statistics cache remains keyed by <code class="docutils literal notranslate"><span class="pre">TableScopedPath</span></code>, but
+<code class="docutils literal notranslate"><span class="pre">CachedFileMetadata</span></code> now stores a <code class="docutils literal notranslate"><span class="pre">SchemaFingerprint</span></code> of the <code class="docutils literal notranslate"><span class="pre">file_schema</span></code> used
+to compute the cached statistics. Cache hits are valid only when both the file
+metadata and schema fingerprint match.</p>
+<p><strong>Who is affected:</strong></p>
+<ul class="simple">
+<li><p>Users constructing <code class="docutils literal notranslate"><span class="pre">CachedFileMetadata</span></code> values directly.</p></li>
+</ul>
+<p><strong>Migration guide:</strong></p>
+<ul class="simple">
+<li><p>Pass <code class="docutils literal notranslate"><span class="pre">Arc::new(SchemaFingerprint::from_schema(file_schema))</span></code> to
+<code class="docutils literal notranslate"><span class="pre">CachedFileMetadata::new</span></code>.</p></li>
+<li><p>Pass the current schema fingerprint to <code class="docutils literal notranslate"><span class="pre">CachedFileMetadata::is_valid_for</span></code>.</p></li>
+</ul>
+<p>See <a class="reference external" href="https://github.com/apache/datafusion/pull/23201">PR #23201</a> for details.</p>
+</section>
 </section>
 </section>
 
@@ -864,6 +935,8 @@ type aliases:</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datafusion-55-0-0">DataFusion 55.0.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dataframe-fill-null-now-borrows-its-arguments"><code class="docutils literal notranslate"><span class="pre">DataFrame::fill_null</span></code> now borrows its arguments</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#user-spillfile-traits-instead-of-refcountedtempfile">User <code class="docutils literal notranslate"><span class="pre">SpillFile</span></code> traits instead of <code class="docutils literal notranslate"><span class="pre">RefCountedTempFile</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dialect-available-replaced-by-dialect-available"><code class="docutils literal notranslate"><span class="pre">Dialect::AVAILABLE</span></code> replaced by <code class="docutils literal notranslate"><span class="pre">Dialect::available()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spill-record-batch-by-size-removed"><code class="docutils literal notranslate"><span class="pre">spill_record_batch_by_size</span></code> removed</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#decimal-scalar-formatting-uses-human-readable-values">Decimal scalar formatting uses human-readable values</a></li>
@@ -876,6 +949,7 @@ type aliases:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#listingoptions-target-partitions-and-collect-stat-removed"><code class="docutils literal notranslate"><span class="pre">ListingOptions::target_partitions</span></code> and <code class="docutils literal notranslate"><span class="pre">collect_stat</span></code> removed</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spark-map-functions-now-reject-duplicate-keys-by-default">Spark map functions now reject duplicate keys by default</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#unify-lru-memory-limiting-caches-into-one-generic-cache">Unify LRU memory-limiting caches into one generic cache</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cachedfilemetadata-now-validates-file-schema"><code class="docutils literal notranslate"><span class="pre">CachedFileMetadata</span></code> now validates file schema</a></li>
 </ul>
 </li>
 </ul>
